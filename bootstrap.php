@@ -5,10 +5,16 @@ require_once __DIR__ . '/vendor/autoload.php';
 use ApiSilex\Service\ClientService;
 use ApiSilex\Model\ClientModel;
 use ApiSilex\Mapper\ClientMapper;
+use Symfony\Component\HttpFoundation\Request;
 
 $app = new Silex\Application();
 
 $app['debug'] = true;
+
+// Habilitando configuracoes de erro
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 $app['clientService'] = function() {
 
@@ -50,4 +56,37 @@ $app->get('/clientes', function() use($app) {
 
     return $app->json($result);
 
+});
+
+$app->get('/api/clientes', function() use($app) {
+   $dados = $app['clientService']->fetchAll();
+   return $app->json($dados);
+});
+
+$app->get('/api/clientes/{id}', function($id) use($app) {
+   $dados = $app['clientService']->findID($id);
+   return $app->json($dados);
+});
+
+$app->post('/api/clientes', function(Request $request) use($app) {
+    $dados['nome'] = $request->get('nome');
+    $dados['email'] = $request->get('email');
+
+    $result = $app['clientService']->insert($dados);
+
+    return $app->json($result);
+});
+
+$app->put('/api/clientes/{id}', function($id, Request $request) use($app) {
+    $data['nome'] = $request->get('nome');
+    $data['email'] = $request->get('email');
+
+    $dados = $app['clientService']->update($id, $data);
+
+    return $app->json($dados);
+});
+
+$app->delete('/api/clientes/{id}', function($id) use($app) {
+   $dados = $app['clientService']->delete($id);
+   return $app->json($dados);
 });

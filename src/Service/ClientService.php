@@ -27,4 +27,24 @@ class ClientService
 
         return $result;
     }
+
+    public function fetchAll()
+    {
+        return $this->clientMapper->fetchAll();
+    }
+
+    public function findID($id)
+    {
+        return $this->clientMapper->findID($id);
+    }
+
+    public function update($id, array $array)
+    {
+        return $this->clientMapper->update($id, $array);
+    }
+
+    public function delete($id)
+    {
+        return 'sucess delete';
+    }
 }
