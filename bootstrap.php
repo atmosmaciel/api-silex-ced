@@ -22,20 +22,20 @@ $app->get('/', function() use($app) {
 
     $clientes = array(
         [
-            'nome' => 'Leandro',
-            'email' => 'leandro@leandro.com',
+            'nome' => 'Usuario 1',
+            'email' => 'usuario1@email.com.br',
             'cnpj' => '213123123123'
         ],
         [
-            'nome' => 'Gabriela',
-            'email' => 'gabriela@leandro.com',
+            'nome' => 'Usuario 2',
+            'email' => 'usuario2@email.com.br',
             'cnpj' => '31231241341'
         ],
         [
-            'nome' => 'Gillearde',
-            'email' => 'gillearde@gillearde.com',
+            'nome' => 'Usuario 3',
+            'email' => 'usuario3@email.com.br',
             'cnpj' => '12312321312321'
-        ],
+        ]
     );
 
     return $app->json($clientes);
