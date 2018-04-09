@@ -2,91 +2,48 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use ApiSilex\Service\ClientService;
-use ApiSilex\Model\ClientModel;
-use ApiSilex\Mapper\ClientMapper;
-use Symfony\Component\HttpFoundation\Request;
+use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Cache\ArrayCache as Cache;
+use Doctrine\Common\Annotations\AnnotationRegistry;
 
-$app = new Silex\Application();
+$cache = new Doctrine\Common\Cache\ArrayCache;
+$annotationReader = new Doctrine\Common\Annotations\AnnotationReader;
 
-$app['debug'] = true;
+$cachedAnnotationReader = new Doctrine\Common\Annotations\CachedReader(
+    $annotationReader, // use reader
+    $cache // and a cache driver
+);
 
-// Habilitando configuracoes de erro
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+$annotationDriver = new Doctrine\ORM\Mapping\Driver\AnnotationDriver(
+    $cachedAnnotationReader, // our cached annotation reader
+    [__DIR__ . DIRECTORY_SEPARATOR . 'src']
+);
 
-$app['clientService'] = function() {
+$driverChain = new Doctrine\ORM\Mapping\Driver\DriverChain();
+$driverChain->addDriver($annotationDriver, 'Code');
 
-    $clientModel = new ClientModel();
-    $clientMapper = new ClientMapper();
+$config = new Doctrine\ORM\Configuration;
+$config->setProxyDir('/tmp');
+$config->setProxyNamespace('Proxy');
+$config->setAutoGenerateProxyClasses(true); // this can be based on production config.
+// register metadata driver
+$config->setMetadataDriverImpl($driverChain);
+// use our allready initialized cache driver
+$config->setMetadataCacheImpl($cache);
+$config->setQueryCacheImpl($cache);
 
-    return $clientService = new ClientService($clientModel, $clientMapper);
-};
+AnnotationRegistry::registerFile(__DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'doctrine' . DIRECTORY_SEPARATOR . 'orm' . DIRECTORY_SEPARATOR . 'lib' . DIRECTORY_SEPARATOR . 'Doctrine' . DIRECTORY_SEPARATOR . 'ORM' . DIRECTORY_SEPARATOR . 'Mapping' . DIRECTORY_SEPARATOR . 'Driver' . DIRECTORY_SEPARATOR . 'DoctrineAnnotations.php');
 
-$app->get('/', function() use($app) {
-
-    $clientes = array(
-        [
-            'nome' => 'Usuario 1',
-            'email' => 'usuario1@email.com.br',
-            'cnpj' => '213123123123'
-        ],
-        [
-            'nome' => 'Usuario 2',
-            'email' => 'usuario2@email.com.br',
-            'cnpj' => '31231241341'
-        ],
-        [
-            'nome' => 'Usuario 3',
-            'email' => 'usuario3@email.com.br',
-            'cnpj' => '12312321312321'
-        ]
-    );
-
-    return $app->json($clientes);
-});
-
-$app->get('/clientes', function() use($app) {
-
-    $dados['nome'] = 'Cliente Nome';
-    $dados['email'] = 'cliente@email.com';
-
-    $result = $app['clientService']->insert($dados);
-
-    return $app->json($result);
-
-});
-
-$app->get('/api/clientes', function() use($app) {
-   $dados = $app['clientService']->fetchAll();
-   return $app->json($dados);
-});
-
-$app->get('/api/clientes/{id}', function($id) use($app) {
-   $dados = $app['clientService']->findID($id);
-   return $app->json($dados);
-});
-
-$app->post('/api/clientes', function(Request $request) use($app) {
-    $dados['nome'] = $request->get('nome');
-    $dados['email'] = $request->get('email');
-
-    $result = $app['clientService']->insert($dados);
-
-    return $app->json($result);
-});
-
-$app->put('/api/clientes/{id}', function($id, Request $request) use($app) {
-    $data['nome'] = $request->get('nome');
-    $data['email'] = $request->get('email');
-
-    $dados = $app['clientService']->update($id, $data);
-
-    return $app->json($dados);
-});
-
-$app->delete('/api/clientes/{id}', function($id) use($app) {
-   $dados = $app['clientService']->delete($id);
-   return $app->json($dados);
-});
+$evm = new Doctrine\Common\EventManager();
+$em = EntityManager::create(
+    [
+        'driver' => 'pdo_mysql',
+        'host' => '127.0.0.1',
+        'port' => '3306',
+        'user' => 'root',
+        'password' => 'mdalycob',
+        'dbname' => 'trilhando_doctrine',
+    ],
+    $config,
+    $evm
+);

@@ -1,10 +1,16 @@
 {
     "require": {
-        "silex/silex": "^2.1"
+	"silex/silex":"~2.0",
+	"doctrine/orm":"~2.4"
     },
+
+    "config": {
+	"bin-dir": "bin/"
+    },
+    
     "autoload": {
-        "psr-4": {
-            "ApiSilex\\":"src"
+	"psr-4": {
+	    "App\\":"src/"
         }
     }
 }
